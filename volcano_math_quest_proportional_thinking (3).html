@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Volcano Math Quest: Proportional Thinking</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            min-height: 100vh;
+            color: #f8fafc;
+        }
+        .lava-gradient {
+            background: linear-gradient(135deg, #ef4444 0%, #f97316 50%, #eab308 100%);
+        }
+        .volcano-card {
+            background: rgba(30, 41, 59, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .pulse-subtle {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.85; }
+        }
+    </style>
+</head>
+<body class="p-3 md:p-6 flex flex-col justify-between items-center text-slate-100">
+
+    <!-- Top Navigation / Header -->
+    <header class="w-full max-w-4xl flex flex-wrap justify-between items-center bg-slate-800/80 p-4 rounded-2xl border border-slate-700 shadow-xl mb-4 gap-2">
+        <div class="flex items-center gap-3">
+            <div class="p-3 bg-red-600 rounded-xl shadow-lg">
+                <i class="fa-solid font-bold fa-volcano text-2xl text-white"></i>
+            </div>
+            <div>
+                <h1 class="text-xl md:text-2xl font-extrabold tracking-tight text-amber-400">Volcano Math Quest</h1>
+                <p class="text-xs text-slate-400">NZC Level 3 • Proportional Reasoning in Waikato Science</p>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-4 text-sm font-semibold">
+            <div class="flex items-center gap-2 bg-slate-900/60 px-3 py-1.5 rounded-lg border border-slate-700">
+                <i class="fa-solid fa-trophy text-amber-400"></i>
+                <span>Score: <span id="score-display" class="text-amber-400 font-bold">0</span></span>
+            </div>
+            <div class="flex items-center gap-2 bg-slate-900/60 px-3 py-1.5 rounded-lg border border-slate-700">
+                <i class="fa-solid fa-clock text-red-400"></i>
+                <span id="timer-display" class="font-mono text-slate-200">20:00</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Game Container -->
+    <main class="w-full max-w-4xl volcano-card rounded-3xl p-4 md:p-8 shadow-2xl relative overflow-hidden flex-1 flex flex-col justify-between">
+
+        <!-- START / INTRO SCREEN -->
+        <section id="start-screen" class="flex flex-col items-center text-center py-6 space-y-6 my-auto">
+            <div class="w-24 h-24 rounded-full lava-gradient flex items-center justify-center shadow-lg shadow-red-500/30 pulse-subtle">
+                <i class="fa-solid fa-mountain-sun text-4xl text-white"></i>
+            </div>
+
+            <div class="space-y-3 max-w-2xl">
+                <span class="bg-red-900/50 text-red-300 text-xs font-bold px-3 py-1 rounded-full border border-red-700 uppercase tracking-wider">
+                    Kia Ora, Volcanologists!
+                </span>
+                <h2 class="text-2xl md:text-4xl font-extrabold text-slate-100">Waikato Volcano Research Team</h2>
+                <p class="text-slate-300 text-base md:text-lg leading-relaxed">
+                    Help our scientific team measure volcanic ash, scaling models, and lava flows around New Zealand! Use your <strong>doubling, halving, and ratio skills</strong> to complete the mission.
+                </p>
+            </div>
+
+            <!-- Learning Intentions Card -->
+            <div class="w-full max-w-lg bg-slate-900/80 p-5 rounded-2xl border border-slate-700 text-left space-y-2">
+                <div class="flex items-center gap-2 text-amber-400 font-bold text-sm">
+                    <i class="fa-solid fa-bullseye"></i> Learning Intentions (NZC Level 3):
+                </div>
+                <ul class="text-xs md:text-sm text-slate-300 space-y-1.5 list-disc list-inside">
+                    <li>I can use simple ratios ($1:2$, $1:3$) to scale volcanic measurements.</li>
+                    <li>I can double and halve numbers to solve real-world science problems.</li>
+                    <li>I can compare quantities using multiplicative thinking.</li>
+                </ul>
+            </div>
+
+            <button onclick="startGame()" class="lava-gradient hover:opacity-90 transition-all transform hover:scale-105 text-white font-extrabold text-lg px-8 py-4 rounded-2xl shadow-xl flex items-center gap-3">
+                <i class="fa-solid fa-play"></i> Start Mission (20 Mins)
+            </button>
+        </section>
+
+        <!-- QUIZ SCREEN -->
+        <section id="quiz-screen" class="hidden flex-col space-y-6 my-auto">
+            
+            <!-- Progress Bar & TTS Controls -->
+            <div class="flex flex-wrap justify-between items-center gap-3 bg-slate-900/60 p-3 rounded-2xl border border-slate-700">
+                <div class="flex items-center gap-3 flex-1 min-w-[200px]">
+                    <span class="text-xs font-bold text-slate-400 min-w-[60px]" id="question-progress-text">Q 1/8</span>
+                    <div class="w-full bg-slate-700 h-3 rounded-full overflow-hidden">
+                        <div id="progress-bar-fill" class="lava-gradient h-full w-0 transition-all duration-300"></div>
+                    </div>
+                </div>
+
+                <!-- Text to Speech Button -->
+                <button id="tts-btn" onclick="speakCurrentQuestion()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs px-4 py-2.5 rounded-xl transition flex items-center gap-2 shadow-md">
+                    <i class="fa-solid fa-volume-high text-sm"></i>
+                    <span>Read Aloud</span>
+                </button>
+            </div>
+
+            <!-- Scenario & Question Box -->
+            <div class="space-y-4">
+                <div class="bg-slate-900/90 p-5 rounded-2xl border border-slate-700 shadow-inner space-y-3">
+                    <div class="flex items-center gap-2 text-xs font-bold text-red-400 uppercase tracking-wider" id="question-category">
+                        <i class="fa-solid fa-flask"></i> Volcanic Data Analysis
+                    </div>
+                    <h3 id="question-text" class="text-lg md:text-2xl font-bold text-slate-100 leading-snug">
+                        Question text goes here...
+                    </h3>
+                </div>
+
+                <!-- Visual Proportion Helper / Diagram Box -->
+                <div id="visual-helper" class="bg-slate-800/80 p-4 rounded-2xl border border-slate-700 flex flex-col items-center justify-center min-h-[100px] text-center">
+                    <!-- Dynamic visual diagram inserted by JS -->
+                </div>
+            </div>
+
+            <!-- Options Grid -->
+            <div id="options-container" class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                <!-- Answer buttons generated by JS -->
+            </div>
+
+            <!-- Helper Tools & Hint -->
+            <div class="flex justify-between items-center pt-2">
+                <button onclick="toggleHint()" class="text-xs text-amber-400 hover:text-amber-300 font-semibold flex items-center gap-1.5 bg-amber-950/40 px-3 py-2 rounded-lg border border-amber-800/50">
+                    <i class="fa-solid fa-lightbulb"></i> Need a Hint?
+                </button>
+                <div id="hint-box" class="hidden text-xs text-slate-300 bg-slate-900 px-3 py-2 rounded-lg border border-slate-700 max-w-xs">
+                    <!-- Dynamic Hint text -->
+                </div>
+            </div>
+        </section>
+
+        <!-- RESULT SCREEN -->
+        <section id="result-screen" class="hidden flex-col items-center text-center py-6 space-y-6 my-auto">
+            <div class="w-20 h-20 rounded-full bg-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/30">
+                <i class="fa-solid fa-award text-4xl text-white"></i>
+            </div>
+
+            <div class="space-y-2">
+                <h2 class="text-3xl font-extrabold text-slate-100">Mission Complete!</h2>
+                <p id="final-badge" class="text-lg font-bold text-amber-400">Lead Volcanologist</p>
+                <p class="text-sm text-slate-300">You completed the proportional thinking challenges!</p>
+            </div>
+
+            <!-- Final Stats Dashboard -->
+            <div class="grid grid-cols-2 gap-4 w-full max-w-md">
+                <div class="bg-slate-900/80 p-4 rounded-2xl border border-slate-700">
+                    <p class="text-xs text-slate-400 font-semibold">Total Score</p>
+                    <p id="final-score" class="text-3xl font-extrabold text-amber-400">0</p>
+                </div>
+                <div class="bg-slate-900/80 p-4 rounded-2xl border border-slate-700">
+                    <p class="text-xs text-slate-400 font-semibold">Accuracy</p>
+                    <p id="final-accuracy" class="text-3xl font-extrabold text-emerald-400">0%</p>
+                </div>
+            </div>
+
+            <!-- NZC Competency Feedback -->
+            <div class="bg-slate-900/80 p-5 rounded-2xl border border-slate-700 text-left max-w-md w-full space-y-2">
+                <p class="text-xs font-bold text-amber-400 flex items-center gap-2">
+                    <i class="fa-solid fa-graduation-cap"></i> Teacher Summary & Skills Learned:
+                </p>
+                <p id="skill-summary" class="text-xs text-slate-300 leading-relaxed">
+                    Great job applying multiplicative thinking to scale distances, ingredients, and volcanic ash thickness!
+                </p>
+            </div>
+
+            <button onclick="resetGame()" class="lava-gradient hover:opacity-90 transition-all font-extrabold text-white px-8 py-3.5 rounded-2xl shadow-xl flex items-center gap-2">
+                <i class="fa-solid fa-rotate-right"></i> Try Again
+            </button>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="w-full max-w-4xl text-center py-3 text-xs text-slate-500 mt-2">
+        Aligning with NZ Curriculum (NZC Level 3 Mathematics - Proportional Reasoning) • Waikato Science Unit
+    </footer>
+
+    <!-- Custom Modal for Feedback -->
+    <div id="feedback-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-3xl p-6 max-w-sm w-full text-center space-y-4 shadow-2xl">
+            <div id="modal-icon" class="w-16 h-16 rounded-full mx-auto flex items-center justify-center text-3xl">
+                <!-- Icon via JS -->
+            </div>
+            <h4 id="modal-title" class="text-xl font-extrabold text-slate-100">Feedback</h4>
+            <p id="modal-message" class="text-sm text-slate-300">Explanation text goes here...</p>
+            <button onclick="nextQuestion()" class="w-full lava-gradient text-white font-bold py-3 rounded-xl shadow-lg">
+                Continue Mission <i class="fa-solid fa-arrow-right ml-1"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // Quiz Questions Data (NZC Level 3 - Proportional Thinking with Volcano Theme)
+        const questions = [
+            {
+                category: "Volcano Model Scale (1 : 2 Ratio)",
+                question: "To make a small volcano model, you need 2 cups of flour. To make a double-sized model, you double the flour. How many cups do you need?",
+                visualType: "ratio-bar",
+                visualData: { label1: "Original Model", val1: 2, label2: "Double Model", val2: 4, unit: "cups" },
+                options: ["3 cups", "4 cups", "5 cups", "6 cups"],
+                correct: 1,
+                hint: "Doubling means multiplying by 2 (or adding 2 + 2).",
+                explanation: "Correct! 2 cups doubled (2 × 2) equals 4 cups of flour."
+            },
+            {
+                category: "Volcanic Ash Thickness (Halving)",
+                question: "Near Mount Ruapehu, ash thickness was 10 cm. Further away in Waikato, the ash thickness halved (divided by 2). How thick is the ash in Waikato?",
+                visualType: "bar-halving",
+                visualData: { start: 10, unit: "cm" },
+                options: ["2 cm", "4 cm", "5 cm", "8 cm"],
+                correct: 2,
+                hint: "Halving means dividing by 2 or finding half of 10.",
+                explanation: "Awesome! Half of 10 cm is 5 cm (10 ÷ 2 = 5)."
+            },
+            {
+                category: "Lava Flow Distance (1 : 3 Ratio)",
+                question: "Lava flows 3 kilometers in 1 hour. If the volcano erupts at a steady rate for 3 hours, how far will the lava flow?",
+                visualType: "ratio-table",
+                visualData: { rate: "3 km per 1 hr", targetHrs: 3 },
+                options: ["6 km", "9 km", "12 km", "15 km"],
+                correct: 1,
+                hint: "For each hour, add another 3 km (3 + 3 + 3 or 3 × 3).",
+                explanation: "Spot on! In 3 hours, the lava flows 3 × 3 = 9 km."
+            },
+            {
+                category: "Volcanologist Safety Team (1 : 2 Ratio)",
+                question: "For every 1 lead scientist, a research team needs 2 safety officers. If there are 4 lead scientists, how many safety officers are needed?",
+                visualType: "icon-group",
+                visualData: { ratio: "1 : 2", count: 4 },
+                options: ["6 safety officers", "8 safety officers", "10 safety officers", "12 safety officers"],
+                correct: 1,
+                hint: "The ratio is 1 to 2. Double the number of scientists to find safety officers.",
+                explanation: "Ka pai! 4 scientists × 2 = 8 safety officers."
+            },
+            {
+                category: "Eruption Scale Comparison",
+                question: "Volcano A produced 4 truckloads of rock. Volcano B produced 3 times as much rock as Volcano A. How many truckloads did Volcano B produce?",
+                visualType: "multiplication-blocks",
+                visualData: { base: 4, multiplier: 3 },
+                options: ["7 truckloads", "10 truckloads", "12 truckloads", "14 truckloads"],
+                correct: 2,
+                hint: "3 times as much means 4 × 3.",
+                explanation: "Great job! 4 truckloads × 3 = 12 truckloads."
+            },
+            {
+                category: "Pumice Stone Recipe (Halving)",
+                question: "A science experiment recipe calls for 8 spoonfuls of baking soda. You want to make a half batch. How many spoonfuls do you need?",
+                visualType: "bar-halving",
+                visualData: { start: 8, unit: "spoonfuls" },
+                options: ["2 spoonfuls", "4 spoonfuls", "6 spoonfuls", "16 spoonfuls"],
+                correct: 1,
+                hint: "Half of 8 means splitting 8 into 2 equal parts.",
+                explanation: "Exact! Half of 8 is 4 (8 ÷ 2 = 4)."
+            },
+            {
+                category: "Lava Dome Height (Scale Factor)",
+                question: "A miniature volcano map has a scale of 1 cm = 5 meters in real life. If the map volcano is 3 cm tall, how tall is the real volcano?",
+                visualType: "scale-ruler",
+                visualData: { scale: "1 cm = 5 m", mapVal: 3 },
+                options: ["8 meters", "10 meters", "15 meters", "20 meters"],
+                correct: 2,
+                hint: "If 1 cm represents 5 m, then 3 cm represents 3 × 5 m.",
+                explanation: "Tuatohi! 3 cm × 5 meters/cm = 15 meters."
+            },
+            {
+                category: "Geothermal Heat Energy (Simple Ratios)",
+                question: "1 geothermal probe collects heat data from 2 hot vents. How many probes are needed to monitor 10 hot vents?",
+                visualType: "ratio-table",
+                visualData: { rate: "1 probe = 2 vents", targetVents: 10 },
+                options: ["5 probes", "8 probes", "10 probes", "20 probes"],
+                correct: 0,
+                hint: "Ask yourself: How many groups of 2 are in 10? (10 ÷ 2)",
+                explanation: "Brilliant! You need 5 probes because 5 × 2 vents = 10 vents."
+            }
+        ];
+
+        // Game State Variables
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let timerInterval;
+        let timeRemaining = 1200; // 20 minutes in seconds
+        let isSpeaking = false;
+
+        // Start Game Function
+        function startGame() {
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('quiz-screen').classList.remove('hidden');
+            document.getElementById('quiz-screen').classList.add('flex');
+            
+            currentQuestionIndex = 0;
+            score = 0;
+            timeRemaining = 1200;
+            updateScoreDisplay();
+            startTimer();
+            loadQuestion();
+        }
+
+        // Timer Function
+        function startTimer() {
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                timeRemaining--;
+                let mins = Math.floor(timeRemaining / 60);
+                let secs = timeRemaining % 60;
+                document.getElementById('timer-display').innerText = 
+                    `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+                
+                if (timeRemaining <= 0) {
+                    clearInterval(timerInterval);
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        // Load Question Function
+        function loadQuestion() {
+            window.speechSynthesis.cancel(); // Stop TTS if reading
+            document.getElementById('hint-box').classList.add('hidden');
+
+            const q = questions[currentQuestionIndex];
+            
+            // Update Text
+            document.getElementById('question-progress-text').innerText = `Q ${currentQuestionIndex + 1}/${questions.length}`;
+            document.getElementById('progress-bar-fill').style.width = `${((currentQuestionIndex + 1) / questions.length) * 100}%`;
+            document.getElementById('question-category').innerHTML = `<i class="fa-solid fa-flask"></i> ${q.category}`;
+            document.getElementById('question-text').innerText = q.question;
+            document.getElementById('hint-box').innerText = q.hint;
+
+            // Render Visual Helper Diagram
+            renderVisualHelper(q);
+
+            // Render Options
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+            q.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "bg-slate-800 hover:bg-slate-700/80 active:bg-slate-900 border border-slate-600/80 p-4 rounded-2xl text-slate-100 font-bold text-left text-sm md:text-base flex items-center justify-between shadow-md transition transform active:scale-95";
+                btn.onclick = () => checkAnswer(idx);
+                btn.innerHTML = `
+                    <span>${opt}</span>
+                    <i class="fa-solid fa-circle-chevron-right text-slate-500"></i>
+                `;
+                container.appendChild(btn);
+            });
+        }
+
+        // Render Visual Diagrams for Low-Text / Visual Learners
+        function renderVisualHelper(q) {
+            const helper = document.getElementById('visual-helper');
+            helper.innerHTML = '';
+
+            if (q.visualType === 'ratio-bar') {
+                helper.innerHTML = `
+                    <div class="w-full max-w-xs space-y-2 text-xs">
+                        <div class="flex justify-between items-center text-slate-300">
+                            <span>${q.visualData.label1}:</span>
+                            <div class="flex gap-1">
+                                <span class="bg-red-500 text-white font-bold px-2 py-1 rounded">2 ${q.visualData.unit}</span>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center text-amber-300 font-bold">
+                            <span>${q.visualData.label2} (Double):</span>
+                            <div class="flex gap-1">
+                                <span class="bg-amber-500 text-slate-900 font-bold px-2 py-1 rounded">2 ${q.visualData.unit}</span>
+                                <span class="bg-amber-500 text-slate-900 font-bold px-2 py-1 rounded">+ 2 ${q.visualData.unit}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (q.visualType === 'bar-halving') {
+                helper.innerHTML = `
+                    <div class="w-full max-w-xs space-y-2 text-xs">
+                        <div class="text-slate-300 font-semibold">Start: ${q.visualData.start} ${q.visualData.unit}</div>
+                        <div class="w-full bg-slate-700 h-6 rounded-lg overflow-hidden flex border border-slate-600">
+                            <div class="w-1/2 bg-red-500 flex items-center justify-center font-bold text-white">Half</div>
+                            <div class="w-1/2 bg-slate-800 flex items-center justify-center font-bold text-slate-400">Half</div>
+                        </div>
+                        <p class="text-slate-400 text-[11px]">Split into 2 equal parts</p>
+                    </div>
+                `;
+            } else if (q.visualType === 'ratio-table') {
+                helper.innerHTML = `
+                    <div class="flex items-center gap-4 bg-slate-900/80 px-4 py-2 rounded-xl border border-slate-700 text-xs">
+                        <div class="text-center">
+                            <span class="text-slate-400 block">Rate Rule</span>
+                            <span class="text-amber-400 font-bold">${q.visualData.rate || '1 : 2'}</span>
+                        </div>
+                        <i class="fa-solid fa-arrow-right text-slate-500"></i>
+                        <div class="text-center">
+                            <span class="text-slate-400 block">Target</span>
+                            <span class="text-emerald-400 font-bold">${q.visualData.targetHrs ? q.visualData.targetHrs + ' Hours' : q.visualData.targetVents + ' Vents'}</span>
+                        </div>
+                    </div>
+                `;
+            } else {
+                // Default Visual representation
+                helper.innerHTML = `
+                    <div class="flex items-center gap-2 text-xs text-amber-400">
+                        <i class="fa-solid fa-calculator text-base"></i>
+                        <span>Proportional Scaling Concept</span>
+                    </div>
+                `;
+            }
+        }
+
+        // Check Answer & Show Modal
+        function checkAnswer(selectedIndex) {
+            const q = questions[currentQuestionIndex];
+            const isCorrect = (selectedIndex === q.correct);
+
+            const modal = document.getElementById('feedback-modal');
+            const icon = document.getElementById('modal-icon');
+            const title = document.getElementById('modal-title');
+            const msg = document.getElementById('modal-message');
+
+            if (isCorrect) {
+                score += 100;
+                updateScoreDisplay();
+                icon.className = "w-16 h-16 rounded-full mx-auto flex items-center justify-center text-3xl bg-emerald-500/20 text-emerald-400 border border-emerald-500";
+                icon.innerHTML = '<i class="fa-solid fa-check"></i>';
+                title.innerText = "Correct! Ka Pai!";
+                title.className = "text-xl font-extrabold text-emerald-400";
+            } else {
+                icon.className = "w-16 h-16 rounded-full mx-auto flex items-center justify-center text-3xl bg-red-500/20 text-red-400 border border-red-500";
+                icon.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+                title.innerText = "Not Quite!";
+                title.className = "text-xl font-extrabold text-red-400";
+            }
+
+            msg.innerText = q.explanation;
+            modal.classList.remove('hidden');
+        }
+
+        // Next Question Logic
+        function nextQuestion() {
+            document.getElementById('feedback-modal').classList.add('hidden');
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questions.length) {
+                loadQuestion();
+            } else {
+                endGame();
+            }
+        }
+
+        // Toggle Hint
+        function toggleHint() {
+            const hintBox = document.getElementById('hint-box');
+            hintBox.classList.toggle('hidden');
+        }
+
+        // Speech Synthesis (Read Aloud)
+        function speakCurrentQuestion() {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel(); // Stop ongoing speech
+                const q = questions[currentQuestionIndex];
+                const textToSpeak = `${q.category}. ${q.question}`;
+                const utterance = new SpeechSynthesisUtterance(textToSpeak);
+                utterance.rate = 0.9; // Slightly slower for clear comprehension
+                utterance.pitch = 1.0;
+                window.speechSynthesis.speak(utterance);
+            } else {
+                alert("Sorry, Text-to-Speech is not supported on this browser.");
+            }
+        }
+
+        // Update Score Display
+        function updateScoreDisplay() {
+            document.getElementById('score-display').innerText = score;
+        }
+
+        // End Game / Summary
+        function endGame() {
+            clearInterval(timerInterval);
+            window.speechSynthesis.cancel();
+
+            document.getElementById('quiz-screen').classList.add('hidden');
+            document.getElementById('result-screen').classList.remove('hidden');
+            document.getElementById('result-screen').classList.add('flex');
+
+            const maxScore = questions.length * 100;
+            const accuracy = Math.round((score / maxScore) * 100);
+
+            document.getElementById('final-score').innerText = `${score} / ${maxScore}`;
+            document.getElementById('final-accuracy').innerText = `${accuracy}%`;
+
+            // Dynamic Badges based on performance
+            const badgeElem = document.getElementById('final-badge');
+            if (accuracy >= 80) {
+                badgeElem.innerText = "🏆 Senior Volcanologist (Proportion Master)";
+            } else if (accuracy >= 50) {
+                badgeElem.innerText = "🌋 Field Research Assistant";
+            } else {
+                badgeElem.innerText = "🔬 Junior Volcano Explorer";
+            }
+        }
+
+        // Reset Game
+        function resetGame() {
+            document.getElementById('result-screen').classList.add('hidden');
+            document.getElementById('start-screen').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
